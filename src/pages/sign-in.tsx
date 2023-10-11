@@ -1,7 +1,10 @@
+import { GetServerSideProps, GetServerSidePropsContext } from 'next';
+import { getServerSession } from 'next-auth';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import Feedback from 'src/icons/Feedback';
 import Logo from 'src/icons/Logo';
+import { authOptions } from 'src/pages/api/auth/[...nextauth]';
 import { signInMethods } from 'src/utils/constants';
 
 export default function SignInPage() {
@@ -47,3 +50,20 @@ export default function SignInPage() {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (
+  ctx: GetServerSidePropsContext
+) => {
+  const session = await getServerSession(ctx.req, ctx.res, authOptions);
+  const redirect = ctx.query.redirect || '/';
+
+  if (!session?.user) return { props: {} };
+
+  return {
+    redirect: {
+      permanent: false,
+      destination: redirect,
+    },
+    props: {},
+  };
+};

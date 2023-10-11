@@ -1,19 +1,28 @@
-import Link from "next/link";
-import Logout from "src/icons/Logout";
-import Profile from "src/icons/Profile";
+import { signOut } from 'next-auth/react';
+import Link from 'next/link';
+import Logout from 'src/icons/Logout';
+import Profile from 'src/icons/Profile';
 
-interface Props {}
+interface Props {
+  userId?: string | undefined;
+}
 
-export default function Dropdown({}: Props) {
+export default function Dropdown(props: Props) {
   return (
-    <div className="overflow-hidden rounded-md bg-[#222]">
+    <div className='overflow-hidden rounded-md bg-[#222]'>
       <ul>
-        <li className="border-b border-gray-600 py-2 pl-4 pr-8 transition-colors hover:bg-[#333]">
-          <Link href={``} className="flex items-center font-normal">
+        <li className='border-b border-gray-600 py-2 pl-4 pr-8 transition-colors hover:bg-[#333]'>
+          <Link
+            href={`account/${props.userId}`}
+            className='flex items-center font-normal'
+          >
             <Profile /> View profile
           </Link>
         </li>
-        <li className="flex cursor-pointer items-center px-4 py-2 transition-colors hover:bg-[#333]">
+        <li
+          onClick={() => signOut()}
+          className='flex cursor-pointer items-center px-4 py-2 transition-colors hover:bg-[#333]'
+        >
           <Logout />
           <button>Log out</button>
         </li>
