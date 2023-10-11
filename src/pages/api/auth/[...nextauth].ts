@@ -1,7 +1,7 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import NextAuth, { type NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import { prisma } from "src/server/db/client";
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import NextAuth, { type NextAuthOptions } from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
+import { prisma } from 'src/server/db/client';
 
 export const authOptions: NextAuthOptions = {
   callbacks: {
@@ -19,9 +19,9 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET!,
+  secret: process.env.NEXT_AUTH_SECRET!,
   pages: {
-    signIn: "/sign-in",
+    signIn: '/sign-in',
   },
 };
 
