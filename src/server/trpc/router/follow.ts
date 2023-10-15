@@ -1,4 +1,9 @@
-import { publicProcedure, router } from 'src/server/trpc/trpc';
+import {
+  protectedProcedure,
+  publicProcedure,
+  router,
+} from 'src/server/trpc/trpc';
+import { z } from 'zod';
 
 export const followRouter = router({
   getAccountsSuggestion: publicProcedure.query(async ({ ctx }) => {
@@ -26,4 +31,29 @@ export const followRouter = router({
 
     return { accounts };
   }),
+  followUser: protectedProcedure
+    .input(z.object({ followingId: z.string().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const follow = await ctx.prisma.follow.findMany({
+        where: {
+          followerId: ctx.session.user.id,
+          followingId: input.followingId!,
+        },
+      });
+
+      if (follow.length > 0) {
+        return ctx.prisma.follow.delete({
+          where: {
+            id: follow[0]?.id,
+          },
+        });
+      } else {
+        return ctx.prisma.follow.create({
+          data: {
+            followerId: ctx.session.user.id,
+            followingId: input.followingId!,
+          },
+        });
+      }
+    }),
 });
