@@ -56,4 +56,29 @@ export const followRouter = router({
         });
       }
     }),
+  getAccountFollowing: protectedProcedure.query(async ({ ctx }) => {
+    const followings = await ctx.prisma.follow.findMany({
+      where: {
+        followerId: ctx.session.user.id,
+      },
+    });
+
+    const accounts = ctx.prisma.user.findMany({
+      where: {
+        id: {
+          in: followings.map((item) => item.followingId),
+        },
+      },
+      include: {
+        _count: {
+          select: {
+            followers: true,
+            followings: true,
+          },
+        },
+      },
+    });
+
+    return accounts;
+  }),
 });
