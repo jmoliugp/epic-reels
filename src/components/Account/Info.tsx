@@ -1,7 +1,10 @@
 import { useSession } from 'next-auth/react';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { Profile } from 'src/types';
 import { getUsername } from 'src/utils';
+import { trpc } from 'src/utils/trpc';
 
 interface Props {
   profile: Profile;
@@ -9,8 +12,26 @@ interface Props {
 }
 
 export default function Info({ isFollow, profile }: Props) {
+  const [followedByMe, setFollowedByMe] = useState(isFollow);
   const session = useSession().data;
   const isOwnProfile = session?.user?.id === profile.id;
+  const { mutateAsync } = trpc.follow.followUser.useMutation({
+    onError: () => {
+      toast.error('Something went wrong');
+      setFollowedByMe((prev) => !prev);
+    },
+  });
+
+  function toggleFollow() {
+    if (!session?.user) {
+      toast.error('You need to log in!');
+      return;
+    }
+
+    if (isOwnProfile) return;
+    setFollowedByMe((prev) => !prev);
+    mutateAsync({ followingId: profile.id });
+  }
 
   return (
     <div className='px-4 xl:px-0'>
@@ -29,11 +50,12 @@ export default function Info({ isFollow, profile }: Props) {
           <p className='text-[16px] font-normal'>{profile.name}</p>
           {!isOwnProfile && (
             <button
+              onClick={toggleFollow}
               className={`mt-4 rounded-md ${
-                true ? 'bg-[#2f2f2f]' : 'bg-primary'
+                followedByMe ? 'bg-[#2f2f2f]' : 'bg-primary'
               } px-6 py-1 text-[16px] font-semibold`}
             >
-              Following
+              {followedByMe ? 'Following' : 'Follow'}
             </button>
           )}
         </div>
