@@ -9,6 +9,10 @@ interface Props {
 }
 
 export default function AccountSidebar({ title, type }: Props) {
+  const { data: session } = useSession();
+  const { data, isLoading } = getAccount();
+  const noAccounts = data?.accounts.length === 0;
+
   function getAccount() {
     if (type === 'getAccountsFollowing' && session?.user) {
       // TODO: perform getAccountFollowing.
@@ -18,10 +22,7 @@ export default function AccountSidebar({ title, type }: Props) {
     return trpc.follow.getAccountsSuggestion.useQuery();
   }
 
-  const { data: session } = useSession();
-  const { data, isLoading } = getAccount();
-
-  if (isLoading) return null;
+  if (isLoading || noAccounts) return null;
   if (!session?.user && type === 'getAccountsFollowing') return null;
 
   return (

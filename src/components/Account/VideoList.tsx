@@ -1,29 +1,59 @@
-import VideoSmall from "src/components/Video/VideoSmall";
+import { useMemo, useState } from 'react';
+import VideoSmall from 'src/components/Video/VideoSmall';
+import { Profile } from 'src/types';
 
-interface Props {}
+interface Props {
+  profile: Profile;
+}
 
-export default function VideoList({}: Props) {
+export default function VideoList({ profile }: Props) {
+  const [type, setType] = useState<'video' | 'like'>('video');
+  const videos = useMemo(() => {
+    if (type === 'video') {
+      return profile.video.map((item) => ({
+        title: item.title,
+        videoUrl: item.videoUrl,
+        id: item.id,
+      }));
+    }
+    return profile.likes.map((item) => ({
+      title: item.video.title,
+      videoUrl: item.video.videoUrl,
+      id: item.id,
+    }));
+  }, [type, profile]);
+
   return (
     <>
-      <ul className="flex w-full items-center">
+      <ul className='flex w-full items-center'>
         <li
           className={`w-[50%] cursor-pointer px-14 py-2 text-center lg:w-auto ${
-            true && "border-b-[2px] border-primary font-bold text-primary"
+            type === 'video' &&
+            'border-b-[2px] border-primary font-bold text-primary'
           }`}
+          onClick={() => setType('video')}
         >
           Videos
         </li>
         <li
           className={`w-[50%] cursor-pointer px-14 py-2 text-center lg:w-auto ${
-            true && "border-b-[2px] border-primary font-bold text-primary"
+            type === 'like' &&
+            'border-b-[2px] border-primary font-bold text-primary'
           }`}
+          onClick={() => setType('like')}
         >
           Likes
         </li>
       </ul>
-      <h3 className="mt-5 w-full text-center">No videos have been shared.</h3>
-      <div className="grid grid-cols-3 gap-1 pb-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 xl:px-0">
-        <VideoSmall />
+      {videos.length === 0 && (
+        <h3 className='mt-5 w-full text-center'>
+          No videos have been {type === 'like' ? 'liked' : 'shared'}.
+        </h3>
+      )}
+      <div className='grid grid-cols-3 gap-1 pb-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 xl:px-0'>
+        {videos.map((video) => (
+          <VideoSmall key={video.id} video={video} />
+        ))}
       </div>
     </>
   );
