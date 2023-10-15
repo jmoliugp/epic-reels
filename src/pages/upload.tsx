@@ -37,7 +37,10 @@ export default function UploadPage() {
     });
   }
 
-  function onDiscardUpload() {}
+  function onDiscardUpload() {
+    setVideoFile(null);
+    setVideoPreview(null);
+  }
 
   async function onUploadVideo() {}
 
@@ -72,7 +75,7 @@ export default function UploadPage() {
               </div>
             )}
           </label>
-          <SubmitVideo />
+          <SubmitVideo onDiscardUpload={onDiscardUpload} />
         </div>
       </div>
     </AppLayout>
