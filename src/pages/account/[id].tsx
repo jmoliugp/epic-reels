@@ -13,8 +13,6 @@ interface Props {
 }
 
 export default function ProfilePage({ profile, isFollow }: Props) {
-  console.log('## ', { profile, isFollow });
-
   return (
     <AppLayout>
       <div className='mt-5 w-full'>
