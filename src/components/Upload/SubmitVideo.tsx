@@ -2,11 +2,15 @@ import Upload from 'src/icons/Upload';
 
 interface Props {
   onDiscardUpload: () => void;
+  onUploadVideo: (event: React.SyntheticEvent<HTMLFormElement>) => void;
 }
 
-export default function SubmitVideo({ onDiscardUpload }: Props) {
+export default function SubmitVideo({ onDiscardUpload, onUploadVideo }: Props) {
   return (
-    <form className='mt-5 w-full flex-1 md:ml-6 md:mt-0'>
+    <form
+      onSubmit={onUploadVideo}
+      className='mt-5 w-full flex-1 md:ml-6 md:mt-0'
+    >
       <div className='mb-6 w-full'>
         <label className='block text-[16px] font-semibold'>Title</label>
         <input className='mt-4 w-full rounded-[4px] border border-[rgba(255,255,255,0.75)] bg-transparent p-2 text-sm text-white' />

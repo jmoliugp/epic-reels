@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
 import React, { useState } from 'react';
@@ -12,6 +13,7 @@ export default function UploadPage() {
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [videoWidth, setVideoWidth] = useState(0);
   const [videoHeight, setVideoHeight] = useState(0);
+  const [isLoading, setLoading] = useState(false);
 
   function onVideoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -42,7 +44,42 @@ export default function UploadPage() {
     setVideoPreview(null);
   }
 
-  async function onUploadVideo() {}
+  async function onUploadVideo(event: React.SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!videoFile) {
+      toast.error(`You haven't selected any videos.`);
+
+      return;
+    }
+
+    const toastId = toast.loading('Uploading...', { position: 'top-left' });
+    try {
+      setLoading(true);
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+      const url = `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`;
+      const formData = new FormData();
+      formData.append('file', videoFile);
+      formData.append('upload_preset', uploadPreset!);
+
+      const videoUrl = await axios.post(url, formData, {
+        onUploadProgress: (progress) => {
+          const { loaded, total } = progress;
+          const percent = Math.floor((loaded * 100) / total!);
+          toast.loading(`${percent}% uploaded...`, { id: toastId });
+        },
+      });
+
+      toast.dismiss(toastId);
+      toast.success('Video uploaded successfully');
+    } catch (error) {
+      setLoading(false);
+      toast.dismiss(toastId);
+      toast.error('Something went wrong!');
+    }
+  }
 
   return (
     <AppLayout>
@@ -75,7 +112,10 @@ export default function UploadPage() {
               </div>
             )}
           </label>
-          <SubmitVideo onDiscardUpload={onDiscardUpload} />
+          <SubmitVideo
+            onUploadVideo={onUploadVideo}
+            onDiscardUpload={onDiscardUpload}
+          />
         </div>
       </div>
     </AppLayout>
