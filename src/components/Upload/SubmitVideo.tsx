@@ -1,11 +1,18 @@
 import Upload from 'src/icons/Upload';
 
 interface Props {
+  isLoading: boolean;
   onDiscardUpload: () => void;
   onUploadVideo: (event: React.SyntheticEvent<HTMLFormElement>) => void;
+  setTitle: (title: string) => void;
 }
 
-export default function SubmitVideo({ onDiscardUpload, onUploadVideo }: Props) {
+export default function SubmitVideo({
+  isLoading,
+  onDiscardUpload,
+  onUploadVideo,
+  setTitle,
+}: Props) {
   return (
     <form
       onSubmit={onUploadVideo}
@@ -13,7 +20,10 @@ export default function SubmitVideo({ onDiscardUpload, onUploadVideo }: Props) {
     >
       <div className='mb-6 w-full'>
         <label className='block text-[16px] font-semibold'>Title</label>
-        <input className='mt-4 w-full rounded-[4px] border border-[rgba(255,255,255,0.75)] bg-transparent p-2 text-sm text-white' />
+        <input
+          onChange={(event) => setTitle(event.target.value)}
+          className='mt-4 w-full rounded-[4px] border border-[rgba(255,255,255,0.75)] bg-transparent p-2 text-sm text-white'
+        />
       </div>
       <div className='mb-6 w-full'>
         <label className='block text-[16px] font-semibold'>Cover</label>
@@ -26,6 +36,7 @@ export default function SubmitVideo({ onDiscardUpload, onUploadVideo }: Props) {
       <div className='grid grid-cols-2 gap-2'>
         <button
           className='w-full rounded-sm border border-[rgba(255,255,255,0.75)] bg-transparent px-4 py-2 text-sm font-semibold text-white'
+          disabled={isLoading}
           onClick={onDiscardUpload}
           type='button'
         >

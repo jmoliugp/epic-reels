@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
+import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import SelectVideo from 'src/components/Upload/SelectVideo';
@@ -8,12 +9,18 @@ import SubmitVideo from 'src/components/Upload/SubmitVideo';
 import AppLayout from 'src/layouts/AppLayout';
 import { authOptions } from 'src/pages/api/auth/[...nextauth]';
 
+import { trpc } from 'src/utils/trpc';
+
 export default function UploadPage() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [videoWidth, setVideoWidth] = useState(0);
   const [videoHeight, setVideoHeight] = useState(0);
+  const [title, setTitle] = useState<string>('');
   const [isLoading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const { mutateAsync } = trpc.video.createVideo.useMutation();
 
   function onVideoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -72,8 +79,17 @@ export default function UploadPage() {
         },
       });
 
+      const res = await mutateAsync({
+        title,
+        videoHeight,
+        videoUrl: videoUrl.data.url,
+        videoWidth,
+      });
       toast.dismiss(toastId);
       toast.success('Video uploaded successfully');
+      onDiscardUpload();
+      setTitle('');
+      router.push(`/video/${res.video.id}`);
     } catch (error) {
       setLoading(false);
       toast.dismiss(toastId);
@@ -113,8 +129,10 @@ export default function UploadPage() {
             )}
           </label>
           <SubmitVideo
-            onUploadVideo={onUploadVideo}
+            isLoading={isLoading}
             onDiscardUpload={onDiscardUpload}
+            onUploadVideo={onUploadVideo}
+            setTitle={setTitle}
           />
         </div>
       </div>
