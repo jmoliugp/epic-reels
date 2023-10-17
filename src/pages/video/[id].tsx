@@ -12,10 +12,12 @@ interface Props {
 }
 
 export default function VideoPage({ video }: Props) {
+  const poster = `${video.videoUrl.split('.mp4')[0]}.jpg`;
+
   return (
     <div className='flex h-screen flex-col text-white lg:flex-row'>
-      <VideoPlayerDetail />
-      <VideoInfo />
+      <VideoPlayerDetail poster={poster} videoUrl={video.videoUrl} />
+      <VideoInfo video={video} />
     </div>
   );
 }

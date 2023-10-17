@@ -14,7 +14,7 @@ interface Props {
 export default function Info({ isFollow, profile }: Props) {
   const [followedByMe, setFollowedByMe] = useState(isFollow);
   const session = useSession().data;
-  const isOwnProfile = session?.user?.id === profile.id;
+  const isOwnProfile = session?.user?.id === profile?.id;
   const { mutateAsync } = trpc.follow.followUser.useMutation({
     onError: () => {
       toast.error('Something went wrong');
