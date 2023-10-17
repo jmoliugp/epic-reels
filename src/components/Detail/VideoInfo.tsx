@@ -8,6 +8,7 @@ import CommentItem from 'src/components/Detail/CommentItem';
 import InputComment from 'src/components/Detail/InputComment';
 import AccountPreview from 'src/components/Sidebar/AccountPreview';
 import HeartRed from 'src/icons/HeartRed';
+import HeartWhite from 'src/icons/HeartWhite';
 import Message from 'src/icons/Message';
 import MusicNote from 'src/icons/MusicNote';
 import { Account, Video } from 'src/types';
@@ -20,6 +21,8 @@ interface Props {
 
 export default function VideoInfo({ video }: Props) {
   const [isFollow, setIsFollow] = useState(video.isFollow);
+  const [isLike, setIsLike] = useState(video.isLike);
+  const [likeCount, setLikeCount] = useState(video._count.likes);
   const { data } = useSession();
   const isOwnVideo = video.user.id === data?.user?.id;
 
@@ -31,7 +34,24 @@ export default function VideoInfo({ video }: Props) {
       },
     });
 
-  function toggleLike() {}
+  const { mutateAsync: toggleLikeMutation } = trpc.like.likeVideo.useMutation({
+    onError: () => {
+      toast.error('Something went wrong');
+      setIsLike((prev) => !prev);
+    },
+  });
+
+  function toggleLike() {
+    if (!data?.user) {
+      toast.error('You need to log in!');
+      return;
+    }
+
+    toggleLikeMutation({ videoId: video.id });
+    const likeCountDiff = isLike ? -1 : 1;
+    setLikeCount((prev) => prev + likeCountDiff);
+    setIsLike((prev) => !prev);
+  }
 
   function toggleFollow() {
     if (data?.user) {
@@ -91,18 +111,21 @@ export default function VideoInfo({ video }: Props) {
           )}
         </div>
         <div className='mt-4'>
-          <p className='line-clamp-2 mt-2 text-sm font-normal'>title</p>
+          <p className='line-clamp-2 mt-2 text-sm font-normal'>{video.title}</p>
           <p className='mt-2 flex items-center text-sm font-semibold'>
-            <MusicNote /> <span className='line-clamp-1'>Soundtrack name</span>
+            <MusicNote />{' '}
+            <span className='line-clamp-1'>Soundtrack {video.user.name}</span>
           </p>
         </div>
         <div className='mt-5 flex items-center justify-between'>
           <div className='flex items-center'>
-            <div className='mr-4 flex items-center'>
+            <div onClick={toggleLike} className='mr-4 flex items-center'>
               <div className='flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[#2f2f2f]'>
-                <HeartRed small />
+                {isLike ? <HeartRed small /> : <HeartWhite small />}
               </div>
-              <p className='ml-2 text-[12px] font-normal text-[#fffffb]'>0</p>
+              <p className='ml-2 text-[12px] font-normal text-[#fffffb]'>
+                {likeCount}
+              </p>
             </div>
             <div className='flex items-center'>
               <div className='flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[#2f2f2f]'>
