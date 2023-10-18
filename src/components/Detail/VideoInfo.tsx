@@ -1,7 +1,7 @@
 import Tippy from '@tippyjs/react/headless';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import CommentItem from 'src/components/Detail/CommentItem';
@@ -11,7 +11,7 @@ import HeartRed from 'src/icons/HeartRed';
 import HeartWhite from 'src/icons/HeartWhite';
 import Message from 'src/icons/Message';
 import MusicNote from 'src/icons/MusicNote';
-import { Account, Video } from 'src/types';
+import { Account, Comment, Video } from 'src/types';
 import { getUsername } from 'src/utils';
 import { trpc } from 'src/utils/trpc';
 
@@ -22,6 +22,9 @@ interface Props {
 export default function VideoInfo({ video }: Props) {
   const [isFollow, setIsFollow] = useState(video.isFollow);
   const [isLike, setIsLike] = useState(video.isLike);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const [commentCount, setCommentCount] = useState(video._count.comment);
+  const [comment, setComment] = useState<Comment[]>(video.comment || []);
   const [likeCount, setLikeCount] = useState(video._count.likes);
   const { data } = useSession();
   const isOwnVideo = video.user.id === data?.user?.id;
@@ -65,7 +68,12 @@ export default function VideoInfo({ video }: Props) {
     setIsFollow((prev) => !prev);
   }
 
-  function addNewComment() {}
+  function addNewComment(comment: Comment) {
+    setComment((prev) => [...prev, comment]);
+    setCommentCount((prev) => prev + 1);
+
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }
 
   return (
     <div className='relative w-full border-l border-[#2f2f2f] lg:w-[544px] lg:overflow-y-hidden'>
@@ -155,14 +163,18 @@ export default function VideoInfo({ video }: Props) {
         </div>
       </div>
 
-      <InputComment />
+      <InputComment addNewComment={addNewComment} videoId={video.id} />
 
       <div className='h-[calc(100vh-290px)] overflow-y-scroll border-t border-[#2f2f2f] pb-[61px]'>
-        <p className='flex h-full w-full items-center justify-center text-sm font-semibold'>
-          No comments yet
-        </p>
-        <CommentItem />
-        <div />
+        {comment.length === 0 && (
+          <p className='flex h-full w-full items-center justify-center text-sm font-semibold'>
+            No comments yet
+          </p>
+        )}
+        {comment.map((item) => (
+          <CommentItem key={item.id} comment={item} />
+        ))}
+        <div ref={bottomRef} />
       </div>
     </div>
   );
