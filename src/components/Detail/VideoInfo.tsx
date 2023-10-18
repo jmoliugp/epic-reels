@@ -1,7 +1,8 @@
 import Tippy from '@tippyjs/react/headless';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useRouter } from 'next/router';
+import { useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import CommentItem from 'src/components/Detail/CommentItem';
@@ -12,7 +13,7 @@ import HeartWhite from 'src/icons/HeartWhite';
 import Message from 'src/icons/Message';
 import MusicNote from 'src/icons/MusicNote';
 import { Account, Comment, Video } from 'src/types';
-import { getUsername } from 'src/utils';
+import { copyToClipboard, getUsername, providers } from 'src/utils';
 import { trpc } from 'src/utils/trpc';
 
 interface Props {
@@ -26,8 +27,18 @@ export default function VideoInfo({ video }: Props) {
   const [commentCount, setCommentCount] = useState(video._count.comment);
   const [comment, setComment] = useState<Comment[]>(video.comment || []);
   const [likeCount, setLikeCount] = useState(video._count.likes);
+  const { asPath } = useRouter();
   const { data } = useSession();
+
   const isOwnVideo = video.user.id === data?.user?.id;
+  const copyLink = useMemo(() => {
+    const origin =
+      typeof window !== 'undefined' && window.location.origin
+        ? window.location.origin
+        : '';
+
+    return `${origin}${asPath}`;
+  }, [asPath]);
 
   const { mutateAsync: toggleFollowMutation } =
     trpc.follow.followUser.useMutation({
@@ -139,27 +150,46 @@ export default function VideoInfo({ video }: Props) {
               <div className='flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[#2f2f2f]'>
                 <Message small />
               </div>
-              <p className='ml-2 text-[12px] font-normal text-[#fffffb]'>0</p>
+              <p className='ml-2 text-[12px] font-normal text-[#fffffb]'>
+                {commentCount}
+              </p>
             </div>
           </div>
 
           <div className='flex items-center'>
-            <Link
-              href={``}
-              target='_blank'
-              className='mr-2 h-7 w-7 cursor-pointer last:mr-0'
-            >
-              <LazyLoadImage effect='opacity' className='rounded-full' />
-            </Link>
+            {providers.map((item) => (
+              <Link
+                className='mr-2 h-7 w-7 cursor-pointer last:mr-0'
+                key={item.name}
+                href={item.link(copyLink, video.title)}
+                target='_blank'
+              >
+                <LazyLoadImage
+                  effect='opacity'
+                  className='rounded-full'
+                  src={item.icon}
+                />
+              </Link>
+            ))}
           </div>
         </div>
 
         <div className='mt-5 flex items-center rounded-sm bg-[#2f2f2f] px-3 py-2'>
           <input
+            value={copyLink}
             readOnly
             className='line-clamp-1 mr-4 flex-1 bg-transparent text-sm font-normal'
           />
-          <button className='text-sm font-semibold'>Copy link</button>
+          <button
+            onClick={() =>
+              copyToClipboard(copyLink)
+                ?.then(() => toast.success('Copy success'))
+                .catch(() => toast.error('Copy failed '))
+            }
+            className='text-sm font-semibold'
+          >
+            Copy link
+          </button>
         </div>
       </div>
 
